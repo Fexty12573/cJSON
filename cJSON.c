@@ -1577,18 +1577,35 @@ static cJSON_bool print_array(const cJSON * const item, printbuffer * const outp
 
     /* Compose the output array. */
     /* opening square bracket */
-    output_pointer = ensure(output_buffer, 1);
+    output_pointer = ensure(output_buffer, 2);
     if (output_pointer == NULL)
     {
         return false;
     }
 
-    *output_pointer = '[';
-    output_buffer->offset++;
+    *output_pointer++ = '[';
+    *output_pointer = '\n';
+    output_buffer->offset += 2;
     output_buffer->depth++;
 
     while (current_element != NULL)
     {
+        if (output_buffer->format)
+        {
+            size_t i;
+            const size_t indent_size = output_buffer->depth * output_buffer->indent_size;
+            output_pointer = ensure(output_buffer, indent_size);
+            if (output_pointer == NULL)
+            {
+                return false;
+            }
+            for (i = 0; i < indent_size; i++)
+            {
+                *output_pointer++ = ' ';
+            }
+            output_buffer->offset += indent_size;
+        }
+
         if (!print_value(current_element, output_buffer))
         {
             return false;
@@ -1605,12 +1622,29 @@ static cJSON_bool print_array(const cJSON * const item, printbuffer * const outp
             *output_pointer++ = ',';
             if(output_buffer->format)
             {
-                *output_pointer++ = ' ';
+                *output_pointer++ = '\n';
             }
             *output_pointer = '\0';
             output_buffer->offset += length;
         }
         current_element = current_element->next;
+    }
+
+    if (output_buffer->format)
+    {
+        size_t i;
+        const size_t indent_size = (output_buffer->depth - 1) * output_buffer->indent_size;
+        output_pointer = ensure(output_buffer, indent_size + 1);
+        if (output_pointer == NULL)
+        {
+            return false;
+        }
+        *output_pointer++ = '\n'; /* newline before closing bracket */
+        for (i = 0; i < indent_size; i++)
+        {
+            *output_pointer++ = ' ';
+        }
+        output_buffer->offset += indent_size + 1;
     }
 
     output_pointer = ensure(output_buffer, 2);
