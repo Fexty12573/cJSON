@@ -30,7 +30,7 @@ static void assert_print_number(const char *expected, double input)
     unsigned char new_buffer[26];
     unsigned int i = 0;
     cJSON item[1];
-    printbuffer buffer = { 0, 0, 0, 0, 0, 0, { 0, 0, 0 } };
+    printbuffer buffer = { 0, 0, 0, 0, 0, 0, 0, { 0, 0, 0 } };
     buffer.buffer = printed;
     buffer.length = sizeof(printed);
     buffer.offset = 0;

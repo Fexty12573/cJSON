@@ -401,11 +401,11 @@ static void cjson_functions_should_not_crash_with_null_pointers(void)
     cJSON_InitHooks(NULL);
     TEST_ASSERT_NULL(cJSON_Parse(NULL));
     TEST_ASSERT_NULL(cJSON_ParseWithOpts(NULL, NULL, true));
-    TEST_ASSERT_NULL(cJSON_Print(NULL));
+    TEST_ASSERT_NULL(cJSON_Print(NULL, 4));
     TEST_ASSERT_NULL(cJSON_PrintUnformatted(NULL));
-    TEST_ASSERT_NULL(cJSON_PrintBuffered(NULL, 10, true));
-    TEST_ASSERT_FALSE(cJSON_PrintPreallocated(NULL, buffer, sizeof(buffer), true));
-    TEST_ASSERT_FALSE(cJSON_PrintPreallocated(item, NULL, 1, true));
+    TEST_ASSERT_NULL(cJSON_PrintBuffered(NULL, 10, true, 4));
+    TEST_ASSERT_FALSE(cJSON_PrintPreallocated(NULL, buffer, sizeof(buffer), true, 4));
+    TEST_ASSERT_FALSE(cJSON_PrintPreallocated(item, NULL, 1, true, 4));
     cJSON_Delete(NULL);
     cJSON_GetArraySize(NULL);
     TEST_ASSERT_NULL(cJSON_GetArrayItem(NULL, 0));
@@ -515,7 +515,7 @@ static void *CJSON_CDECL failing_realloc(void *pointer, size_t size)
 
 static void ensure_should_fail_on_failed_realloc(void)
 {
-    printbuffer buffer = {NULL, 10, 0, 0, false, false, {&malloc, &free, &failing_realloc}};
+    printbuffer buffer = {NULL, 10, 0, 0, 0, false, false, {&malloc, &free, &failing_realloc}};
     buffer.buffer = (unsigned char *)malloc(100);
     TEST_ASSERT_NOT_NULL(buffer.buffer);
 

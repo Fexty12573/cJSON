@@ -77,7 +77,7 @@ static void do_test(const char *test_name)
     TEST_ASSERT_NOT_NULL_MESSAGE(tree, "Failed to read of parse test.");
 
     /* print the parsed tree */
-    actual = cJSON_Print(tree);
+    actual = cJSON_Print(tree, 4);
     TEST_ASSERT_NOT_NULL_MESSAGE(actual, "Failed to print tree back to JSON.");
 
 

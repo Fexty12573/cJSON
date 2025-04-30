@@ -449,6 +449,7 @@ typedef struct
     size_t length;
     size_t offset;
     size_t depth; /* current nesting depth (for formatted printing) */
+    size_t indent_size;
     cJSON_bool noalloc;
     cJSON_bool format; /* is this print a formatted print */
     internal_hooks hooks;
@@ -1204,7 +1205,7 @@ CJSON_PUBLIC(cJSON *) cJSON_ParseWithLength(const char *value, size_t buffer_len
 
 #define cjson_min(a, b) (((a) < (b)) ? (a) : (b))
 
-static unsigned char *print(const cJSON * const item, cJSON_bool format, const internal_hooks * const hooks)
+static unsigned char *print(const cJSON * const item, cJSON_bool format, const internal_hooks * const hooks, size_t indent_size)
 {
     static const size_t default_buffer_size = 256;
     printbuffer buffer[1];
@@ -1217,6 +1218,7 @@ static unsigned char *print(const cJSON * const item, cJSON_bool format, const i
     buffer->length = default_buffer_size;
     buffer->format = format;
     buffer->hooks = *hooks;
+    buffer->indent_size = indent_size;
     if (buffer->buffer == NULL)
     {
         goto fail;
@@ -1272,19 +1274,19 @@ fail:
 }
 
 /* Render a cJSON item/entity/structure to text. */
-CJSON_PUBLIC(char *) cJSON_Print(const cJSON *item)
+CJSON_PUBLIC(char *) cJSON_Print(const cJSON *item, size_t indent_size)
 {
-    return (char*)print(item, true, &global_hooks);
+    return (char*)print(item, true, &global_hooks, indent_size);
 }
 
 CJSON_PUBLIC(char *) cJSON_PrintUnformatted(const cJSON *item)
 {
-    return (char*)print(item, false, &global_hooks);
+    return (char*)print(item, false, &global_hooks, 0);
 }
 
-CJSON_PUBLIC(char *) cJSON_PrintBuffered(const cJSON *item, int prebuffer, cJSON_bool fmt)
+CJSON_PUBLIC(char *) cJSON_PrintBuffered(const cJSON *item, int prebuffer, cJSON_bool fmt, size_t indent_size)
 {
-    printbuffer p = { 0, 0, 0, 0, 0, 0, { 0, 0, 0 } };
+    printbuffer p = { 0, 0, 0, 0, 0, 0, 0, { 0, 0, 0 } };
 
     if (prebuffer < 0)
     {
@@ -1302,6 +1304,7 @@ CJSON_PUBLIC(char *) cJSON_PrintBuffered(const cJSON *item, int prebuffer, cJSON
     p.noalloc = false;
     p.format = fmt;
     p.hooks = global_hooks;
+    p.indent_size = indent_size;
 
     if (!print_value(item, &p))
     {
@@ -1313,9 +1316,9 @@ CJSON_PUBLIC(char *) cJSON_PrintBuffered(const cJSON *item, int prebuffer, cJSON
     return (char*)p.buffer;
 }
 
-CJSON_PUBLIC(cJSON_bool) cJSON_PrintPreallocated(cJSON *item, char *buffer, const int length, const cJSON_bool format)
+CJSON_PUBLIC(cJSON_bool) cJSON_PrintPreallocated(cJSON *item, char *buffer, const int length, const cJSON_bool format, size_t indent_size)
 {
-    printbuffer p = { 0, 0, 0, 0, 0, 0, { 0, 0, 0 } };
+    printbuffer p = { 0, 0, 0, 0, 0, 0, 0, { 0, 0, 0 } };
 
     if ((length < 0) || (buffer == NULL))
     {
@@ -1328,6 +1331,7 @@ CJSON_PUBLIC(cJSON_bool) cJSON_PrintPreallocated(cJSON *item, char *buffer, cons
     p.noalloc = true;
     p.format = format;
     p.hooks = global_hooks;
+    p.indent_size = indent_size;
 
     return print_value(item, &p);
 }
@@ -1777,9 +1781,9 @@ static cJSON_bool print_object(const cJSON * const item, printbuffer * const out
             {
                 return false;
             }
-            for (i = 0; i < output_buffer->depth; i++)
+            for (i = 0; i < output_buffer->depth * output_buffer->indent_size; i++)
             {
-                *output_pointer++ = '\t';
+                *output_pointer++ = ' ';
             }
             output_buffer->offset += output_buffer->depth;
         }
@@ -1800,7 +1804,7 @@ static cJSON_bool print_object(const cJSON * const item, printbuffer * const out
         *output_pointer++ = ':';
         if (output_buffer->format)
         {
-            *output_pointer++ = '\t';
+            *output_pointer++ = ' ';
         }
         output_buffer->offset += length;
 
@@ -1841,9 +1845,9 @@ static cJSON_bool print_object(const cJSON * const item, printbuffer * const out
     if (output_buffer->format)
     {
         size_t i;
-        for (i = 0; i < (output_buffer->depth - 1); i++)
+        for (i = 0; i < (output_buffer->depth - 1) * output_buffer->indent_size; i++)
         {
-            *output_pointer++ = '\t';
+            *output_pointer++ = ' ';
         }
     }
     *output_pointer++ = '}';

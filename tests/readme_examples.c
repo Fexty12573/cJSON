@@ -103,7 +103,7 @@ static char* create_monitor(void)
         cJSON_AddItemToObject(resolution, "height", height);
     }
 
-    string = cJSON_Print(monitor);
+    string = cJSON_Print(monitor, 4);
     if (string == NULL)
     {
         fprintf(stderr, "Failed to print monitor.\n");
@@ -155,7 +155,7 @@ static char *create_monitor_with_helpers(void)
         cJSON_AddItemToArray(resolutions, resolution);
     }
 
-    string = cJSON_Print(monitor);
+    string = cJSON_Print(monitor, 4);
     if (string == NULL) {
         fprintf(stderr, "Failed to print monitor.\n");
     }
