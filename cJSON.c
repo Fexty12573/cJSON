@@ -1776,16 +1776,17 @@ static cJSON_bool print_object(const cJSON * const item, printbuffer * const out
         if (output_buffer->format)
         {
             size_t i;
-            output_pointer = ensure(output_buffer, output_buffer->depth);
+            const size_t indent_size = output_buffer->depth * output_buffer->indent_size;
+            output_pointer = ensure(output_buffer, indent_size);
             if (output_pointer == NULL)
             {
                 return false;
             }
-            for (i = 0; i < output_buffer->depth * output_buffer->indent_size; i++)
+            for (i = 0; i < indent_size; i++)
             {
                 *output_pointer++ = ' ';
             }
-            output_buffer->offset += output_buffer->depth;
+            output_buffer->offset += indent_size;
         }
 
         /* print key */
@@ -1837,7 +1838,7 @@ static cJSON_bool print_object(const cJSON * const item, printbuffer * const out
         current_item = current_item->next;
     }
 
-    output_pointer = ensure(output_buffer, output_buffer->format ? (output_buffer->depth + 1) : 2);
+    output_pointer = ensure(output_buffer, output_buffer->format ? ((output_buffer->depth - 1) * output_buffer->indent_size + 1) : 2);
     if (output_pointer == NULL)
     {
         return false;
